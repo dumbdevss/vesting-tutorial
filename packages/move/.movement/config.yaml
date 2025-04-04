@@ -1,0 +1,9 @@
+---
+profiles:
+  default:
+    network: Custom
+    private_key: "0xdc094fbcdbbe54b8d3725b9b8aedd03b17a27e02752cf1d4b0a19eb8a6ec5f2e"
+    public_key: "0xb5648ab0641caa54be510607cda78deb7af47c9ad6fcfda501c23654d43f17a0"
+    account: 99052ed7ce92d86ab32ae0c8de30fe5dcec274bb34056a938c34f3ac90aadc3a
+    rest_url: "https://testnet.bardock.movementnetwork.xyz/v1"
+    faucet_url: "https://faucet.testnet.bardock.movementnetwork.xyz/"
