@@ -60,6 +60,7 @@ async function main() {
 
   // Add assume-yes flag
   deployCommand += ' --assume-yes';
+  deployCommand = platform === 'movement' && 'movement move publish';
 
   try {
     // Execute deploy command
