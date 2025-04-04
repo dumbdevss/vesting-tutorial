@@ -24,7 +24,8 @@
     "postinstall": "husky install",
     "precommit": "lint-staged",
     "vercel": "yarn workspace @scaffold-move/nextjs vercel",
-    "vercel:yolo": "yarn workspace @scaffold-move/nextjs vercel:yolo"
+    "vercel:yolo": "yarn workspace @scaffold-move/nextjs vercel:yolo",
+    "deploy:movement": "node packages/move/scripts/deploy.js --network movement"
   },
   "packageManager": "yarn@3.2.3",
   "devDependencies": {
