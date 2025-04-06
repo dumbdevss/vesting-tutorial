@@ -1,0 +1,185 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+    --primary: 48 96% 53%;
+    --primary-foreground: 240 5.9% 10%;
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 48 96% 53%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 48 96% 53%;
+    --primary-foreground: 240 5.9% 10%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 48 96% 53%;
+  }
+}
+/* 
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+} */
+
+.gradient-card {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(0, 0, 0, 0) 100%);
+  border: 1px solid rgba(255, 215, 0, 0.2);
+  backdrop-filter: blur(10px);
+}
+
+.gradient-yellow {
+  background: linear-gradient(90deg, #ffd700 0%, #ffaa00 100%);
+}
+
+.glow {
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+}
+
+.progress-bar-bg {
+  background: linear-gradient(90deg, rgba(255, 215, 0, 0.1) 0%, rgba(255, 215, 0, 0.05) 100%);
+}
+
+.progress-bar-fill {
+  background: linear-gradient(90deg, #ffd700 0%, #ffaa00 100%);
+}
+
+.wallet-button {
+    @apply flex flex-col items-center mr-1 btn btn-primary !important;
+  }
+  
+  .wallet-modal-title {
+    text-align: center;
+    font-size: 1.5rem;
+    line-height: 2rem;
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 32px;
+  }
+  
+  .aptos-connect-privacy-policy-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .aptos-connect-privacy-policy-text {
+    font-size: 12px;
+    line-height: 20px;
+  }
+  
+  .aptos-connect-privacy-policy-link {
+    color: rgba(0, 0, 0, 0.5);
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+  
+  .aptos-connect-privacy-policy-link:hover {
+    text-decoration: underline;
+  }
+  
+  .aptos-connect-powered-by {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    font-size: 12px;
+    line-height: 20px;
+    color: rgba(0, 0, 0, 0.5);
+  }
+  
+  .wallet-menu-wrapper {
+    display: flex;
+    justify-content: space-between;
+    font-size: 20px;
+    border: solid 1px;
+    border-color: rgba(0, 0, 0, 0.1);
+    padding-inline: 16px;
+    padding-block: 12px;
+    border-radius: 8px;
+  }
+  
+  .wallet-name-wrapper {
+    display: flex;
+    align-items: center;
+  }
+  
+  .wallet-selector-icon {
+    height: 24px;
+    width: 24px;
+    margin-right: 12px;
+  }
+  
+  .wallet-selector-text {
+    font-size: 14px;
+  }
+  
+  .wallet-connect-button {
+    @apply flex flex-col items-center btn btn-secondary;
+  }
+  
+  .wallet-connect-install {
+    @apply flex flex-col items-center mr-1 btn btn-secondary;
+  }
+  
+  /* Scoped Ant CSS overrides */
+  
+  :where(.wallet-selector-modal .ant-modal-body) {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  :where(.wallet-selector-modal .ant-divider-inner-text) {
+    color: rgba(0, 0, 0, 0.5);
+  }
+  
+  :where(.wallet-selector-modal .ant-collapse-header) {
+    justify-content: center !important;
+    color: rgba(0, 0, 0, 0.5) !important;
+  }
+  :where(.wallet-selector-modal .ant-collapse-header-text) {
+    flex: unset !important;
+    margin-inline-end: 0 !important;
+  }
+  
+  :where(.wallet-selector-modal .ant-collapse-content-box) {
+    padding: 0px !important;
+    padding-top: 8px !important;
+  }
+  

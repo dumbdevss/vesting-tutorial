@@ -1,0 +1,13 @@
+[package]
+name = "vesting"
+version = "1.0.0"
+authors = ["Taiwo Triumphant"]
+upgrade_policy="compatible"
+
+[dependencies.AptosFramework]
+git = "https://github.com/movementlabsxyz/aptos-core.git"
+rev = "movement"
+subdir = "aptos-move/framework/aptos-framework"
+
+[addresses]
+blockchain = "0xb163ca4db45752d2a781c289fece63c22cdf4d459353395f30576b866d7569d3"

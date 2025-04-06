@@ -1,111 +1,87 @@
-# 🏗 Scaffold Move
+## Overview
 
-<div align="center">
+This tutorial demonstrates how to create a decentralized vesting solution that allows projects to lock tokens and release them to recipients according to predefined schedules. Token vesting is a crucial component of many blockchain projects, especially for managing team, advisor, and investor token allocations.
 
-![logo](/assets/logo_small.png)
-<h4 align="center">
-  <a href="https://scaffold-move-docs.vercel.app/">Documentation</a> |
-  <a href="https://scaffold-move-chi.vercel.app/">Website</a>
-</h4>
-</div>
+## Features
 
-🧪 Scaffold Move is an open-source, cutting-edge toolkit for building decentralized applications (dApps) on Aptos or any other Move-based blockchain. It's designed to streamline the process of creating and deploying Move modules and building user interfaces that interact seamlessly with those modules.
+- Implementation of smart contracts for token vesting
+- Multi-chain deployment (Movement & Aptos)
+- User interface for managing vesting schedules
+- Admin panel for creating new vesting contracts
+- Claiming mechanism for beneficiaries
+- Time-locked release schedules
 
-⚙️ Built using Move, Aptos TS SDK, Next.js, Tailwind CSS, and TypeScript.
+## Prerequisites
 
-- 🛫 **Deployment Scripts**: Simplify and automate your deployment workflow.
-- ✅ **Module Hot Reload**: Your frontend automatically adapts to changes in your Move modules as you edit them.
-- 🪝 **Custom Hooks**: A collection of React hooks to simplify interactions with Move modules.
-- 🧱 **Components**: A library of common Web3 components to rapidly build your frontend.
-- 🔐 **Wallet Integration**: Connect to any Aptos-compatible wallet and interact with the Aptos network directly from your frontend.
+Before starting, make sure you have the following installed:
+- [Node.js](https://nodejs.org/) (v14 or later)
+- [Yarn](https://yarnpkg.com/) package manager
+- [Movement CLI](https://docs.movementlabs.xyz/) (for Movement deployments)
+- [Aptos CLI](https://aptos.dev/en/build/cli) (for Aptos deployments)
 
-Perfect for hackathons, prototyping, or launching your next Move project!
+## Getting Started
 
-![Debug Modules tab](assets/debug.png)
+First, install the dependencies:
 
-## Requirements
-
-Before you begin, you need to install the following tools:
-
-- [Node (>= v18.17)](https://nodejs.org/en/download/)
-- Yarn ([v1](https://classic.yarnpkg.com/en/docs/install/) or [v2+](https://yarnpkg.com/getting-started/install))
-- [Git](https://git-scm.com/downloads)
-- [Aptos CLI](https://aptos.dev/en/build/cli)
-
-## Quickstart
-
-To get started with Scaffold Move, follow the steps below:
-
-1. Clone this repo & install dependencies
-
-```
-git clone https://github.com/arjanjohan/scaffold-move.git
-cd scaffold-move
+```bash
 yarn install
 ```
 
-2. THen, initialize a new account.
+## Deployment Options
 
+### Movement Blockchain Deployment
+
+To deploy your vesting contracts to the Movement blockchain:
+
+```bash
+yarn deploy:movement
 ```
-yarn account
-```
 
-This command overwrites `packages/move/.aptos/config.yaml` with a new Aptos account. The new address is copied over to the first address in the Move.toml file. If no address exists in this file, it is added on a new line.
+This command will compile your vesting smart contracts and deploy them to the Movement blockchain network.
 
-Use the `--network` tag to define a network to create the account on. Alternatively, you can change the `defaultNetwork` value in `packages/move/move.config.js`.
+### Aptos Blockchain Deployment
 
-3. Deploy the test modules:
+To deploy your vesting contracts to the Aptos blockchain:
 
-```
+```bash
 yarn deploy
 ```
 
-This command deploys the move modules to the selected network. The modules are located in `packages/move/sources` and can be modified to suit your needs. The `yarn deploy` command uses `aptos move publish` to publish the modules to the network. After this is executes the script located in `scripts/loadModules.js` to make the new modules available in the nextjs frontend.
+## Running the dApp
 
-4. On a second terminal, start your NextJS app:
+After deploying your vesting contracts, you can start the decentralized application:
 
-```
+```bash
 yarn start
 ```
 
-Visit your app on: `http://localhost:3000`. You can interact with your Move modules using the `Debug Modules` page. You can tweak the app config in `packages/nextjs/scaffold.config.ts`.
+or if you prefer npm:
 
-**What's next**:
+```bash
+npm start
+```
 
-- Edit your Move module `OnchainBio.move` in `packages/move/sources`
-- Edit your frontend homepage at `packages/nextjs/app/page.tsx`. For guidance on [routing](https://nextjs.org/docs/app/building-your-application/routing/defining-routes) and configuring [pages/layouts](https://nextjs.org/docs/app/building-your-application/routing/pages-and-layouts) checkout the Next.js documentation.
-<!-- - Edit your Move modules test in: `packages/move/test`. To run test use `yarn hardhat:test` -->
+The application will start and be available in your browser.
 
-## Future Development
+## Learning Outcomes
 
-Scaffold Move has successfully implemented core features essential for Move developers, providing a robust foundation for building decentralized applications. The current version offers a streamlined development experience with hot module reloading, custom hooks, and seamless wallet integration.
+By completing this tutorial, you'll learn:
 
-Looking ahead, we have an exciting roadmap of enhancements and new features planned:
+1. **Token Vesting Mechanics** - Understanding linear and cliff vesting models
+2. **Smart Contract Development** - Creating secure vesting contracts in the Move language
+3. **Blockchain Interaction** - Connecting frontend applications to blockchain contracts
+4. **Multi-chain Development** - Adapting applications for different blockchain ecosystems
+5. **User Experience Design** - Building intuitive interfaces for blockchain applications
 
-- Add a testing framework for Move modules.
-- Add custom networks to network switching. This is currently not available in the Aptos Wallet Adapter. Once [our PR](https://github.com/aptos-labs/aptos-wallet-adapter/pull/425) is merged, this feature will be added to Scaffold Move.
-- Enhance documentation and create tutorials for easier onboarding.
-- Develop additional pre-built components for common dApp functionalities.
-- Integrate different templates/configurations (similar to [create-aptos-dapp](https://aptos.dev/en/build/create-aptos-dapp))
+## Key Components
 
-We're committed to evolving Scaffold Move based on community feedback and emerging best practices in the Move ecosystem. For a detailed list of upcoming features and to contribute ideas, please check our [GitHub Issues](https://github.com/arjanjohan/scaffold-move/issues).
+- **Vesting Contract**: Core smart contract that locks and releases tokens according to schedules
+- **Admin Interface**: For creating and managing vesting schedules
+- **Beneficiary Dashboard**: For users to view and claim their vested tokens
+- **Transaction History**: For tracking vesting-related activities
 
-Your input is valuable! If you have suggestions or want to contribute, we encourage you to get involved and help shape the future of Scaffold Move. Join our [developer Telegram channel](https://t.me/+lOn2MJawQlc1YjA8) to connect with the community and stay updated on the latest developments.
+## Resources
 
-## Links
-
-- [Documentation](https://scaffold-move-docs.vercel.app/)
-- [Example deployment](https://scaffold-move-chi.vercel.app/)
-- [Telegram Community](https://t.me/+lOn2MJawQlc1YjA8)
-- [Github](https://github.com/arjanjohan/scaffold-move)
-
-## Credits
-
-None of this would have been possible without the great work done in:
-- [Scaffold-ETH 2](https://github.com/scaffold-eth/scaffold-eth-2)
-- [Aptos Explorer](https://github.com/aptos-labs/explorer)
-- [Aptos Wallet Adapter](https://github.com/aptos-labs/aptos-wallet-adapter)
-
-## Built by
-
-- [arjanjohan](https://x.com/arjanjohan/)
+- [Movement Documentation](https://docs.movementlabs.xyz/)
+- [Aptos Documentation](https://aptos.dev/)
+- [Move Language Documentation](https://move-language.github.io/move/)
