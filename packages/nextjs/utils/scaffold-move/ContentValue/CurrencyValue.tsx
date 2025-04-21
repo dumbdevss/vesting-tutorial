@@ -10,37 +10,44 @@ function trimRight(rightSide: string) {
 }
 
 export function getFormattedBalanceStr(balance: string, decimals?: number, fixedDecimalPlaces?: number): string {
+  // Default to 2 decimal places if not specified
+  fixedDecimalPlaces = fixedDecimalPlaces ?? 2;
+  decimals = decimals || APTOS_DECIMALS; // Assuming APTOS_DECIMALS is defined elsewhere
+
   // If balance is zero or decimals is 0, just return it
-  if (balance == "0" || (decimals !== undefined && decimals === 0)) {
-    return balance;
+  if (balance === "0" || decimals === 0) {
+    return "0"; // Return "0" instead of balance to ensure consistency
   }
 
   const len = balance.length;
-  decimals = decimals || APTOS_DECIMALS;
 
-  // If length is less than decimals, pad with 0s to decimals length and return
+  // If length is less than decimals, pad with 0s and format
   if (len <= decimals) {
-    return "0." + (trimRight("0".repeat(decimals - len) + balance) || "0");
+    const padded = "0".repeat(decimals - len) + balance;
+    const num = parseFloat("0." + padded);
+    return num.toFixed(fixedDecimalPlaces);
   }
 
   // Otherwise, insert decimal point at len - decimals
   const leftSide = BigInt(balance.slice(0, len - decimals)).toLocaleString("en-US");
   let rightSide = balance.slice(len - decimals);
-  if (BigInt(rightSide) == BigInt(0)) {
-    return leftSide;
+
+  // Convert to number and use toFixed for consistent decimal places
+  const num = parseFloat(leftSide.replace(/,/g, "") + "." + rightSide);
+  let result = num.toFixed(fixedDecimalPlaces);
+
+  // Remove trailing zeros after decimal point if not needed, but keep minimum 2 decimals
+  const [integerPart, decimalPart] = result.split(".");
+  if (decimalPart) {
+    const trimmedDecimal = trimRight(decimalPart);
+    result = integerPart + (trimmedDecimal ? "." + trimmedDecimal : "");
+    // Ensure minimum 2 decimal places
+    if (trimmedDecimal.length < fixedDecimalPlaces) {
+      result += "0".repeat(fixedDecimalPlaces - trimmedDecimal.length);
+    }
   }
 
-  // remove trailing 0s
-  rightSide = trimRight(rightSide);
-  if (fixedDecimalPlaces !== undefined && rightSide.length > fixedDecimalPlaces) {
-    rightSide = rightSide.slice(0, fixedDecimalPlaces - rightSide.length);
-  }
-
-  if (rightSide.length === 0 || rightSide === "0") {
-    return leftSide;
-  }
-
-  return leftSide + "." + trimRight(rightSide);
+  return result;
 }
 
 type CurrencyValueProps = {
