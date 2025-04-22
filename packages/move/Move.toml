@@ -10,4 +10,4 @@ rev = "movement"
 subdir = "aptos-move/framework/aptos-framework"
 
 [addresses]
-blockchain = "0xb163ca4db45752d2a781c289fece63c22cdf4d459353395f30576b866d7569d3"
+blockchain = "0xb88a3eb61fc007d2d28ac38c79983042b6cefaa31527a3a0bdf459fd75a3d4e2"
