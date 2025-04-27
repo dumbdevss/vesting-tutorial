@@ -248,7 +248,9 @@ module blockchain::vesting {
 
         // Check if cliff period has passed
         assert!(now_seconds >= (stream.cliff + stream.start_time), ERROR_CLIFF_HAS_NOT_PASSED);
-        assert!(now_seconds <= (stream.duration + stream.start_time), ERROR_INVALID_DURATION);
+        if (now_seconds >= (stream.duration + stream.start_time)) {
+            now_seconds = stream.duration + stream.start_time;
+        };
         assert!(amount_to_claim > 0, ERROR_INVALID_AMOUNT);
 
         let current_vested = calculate_current_vested_without_cliff_amount(
@@ -266,7 +268,7 @@ module blockchain::vesting {
         assert!(actual_claimable > 0, ERROR_NOTHING_TO_CLAIM);
 
         assert!(coin::balance<AptosCoin>(resources_address) > actual_claimable, ERROR_INSUFFICIENT_FUNDS);
-        let coin_with = coin::withdraw<AptosCoin>(&resource_signer, actual_claimable);
+        let coin_with = coin::withdraw<AptosCoin>(&resource_signer, amount_to_claim);
         coin::deposit<AptosCoin>(beneficiary_addr, coin_with);
 
         // Update claimed amount
