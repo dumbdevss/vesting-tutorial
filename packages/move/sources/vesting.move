@@ -1,6 +1,7 @@
 module blockchain::vesting {
     use std::signer;
     use aptos_framework::account;
+    use std::option::{Self, Option};
     use aptos_framework::timestamp;
     use std::simple_map::{Self, SimpleMap};
     use aptos_framework::event;
@@ -8,6 +9,7 @@ module blockchain::vesting {
     use std::vector;
     use aptos_framework::aptos_coin::AptosCoin;
     use std::debug;
+    use std::string::String;
 
     /// Error codes
     const SEED: vector<u8> = b"vesting";
@@ -21,6 +23,7 @@ module blockchain::vesting {
     const ERROR_INVALID_AMOUNT: u64 = 8;
     const ERROR_CLIFF_HAS_NOT_PASSED: u64 = 9;
     const ERROR_INSUFFICIENT_FUNDS: u64 = 10;
+    const ERROR_INVALID_STREAM_IDS: u64 = 11;
 
     /// Event emitted when a new stream is created
     struct StreamCreatedEvent has drop, store {
@@ -40,18 +43,21 @@ module blockchain::vesting {
 
     /// Represents a single vesting stream
     struct VestingStream has store, copy, drop {
+        stream_id: String,
         beneficiary: address,
         total_amount: u64,
         start_time: u64,
         cliff: u64,
         duration: u64,
         claimed_amount: u64,
+        creator: address
     }
 
     /// Main vesting contract resource
     struct VestingContract has key, copy, drop {
         owner: address,
-        streams: SimpleMap<address, VestingStream>,
+        streams: SimpleMap<String, VestingStream>,
+        streams_vec: vector<VestingStream>
     }
 
     struct State has key {
@@ -65,9 +71,11 @@ module blockchain::vesting {
 
         // Initialize the vesting contract with resource account as owner
         let streams = simple_map::create();
+        let streams_vec = vector::empty<VestingStream>();
         let vesting_contract = VestingContract {
             owner: signer::address_of(&resource_signer),
             streams,
+            streams_vec
         };
 
         // Register the resource account for AptosCoin
@@ -105,28 +113,32 @@ module blockchain::vesting {
         user: address,
         total_amount: u64,
         duration: u64,
-        cliff: u64
+        cliff: u64,
+        stream_id: String
     ) acquires VestingContract, State {
         let resources_address = account::create_resource_address(&@blockchain, SEED);
         assert!(signer::address_of(owner) == @blockchain, ERROR_NOT_OWNER);
-        assert!(!has_stream(user), ERROR_STREAM_EXISTS);
+        assert!(!has_stream(stream_id), ERROR_STREAM_EXISTS);
         assert!(duration > 0, ERROR_INVALID_DURATION);
         assert!(total_amount > 0, ERROR_INVALID_AMOUNT);
         assert!(cliff <= duration, ERROR_CLIFF_EXCEEDS_DURATION);
         assert!(coin::balance<AptosCoin>(resources_address) > total_amount, ERROR_INSUFFICIENT_FUNDS);
 
         let vesting_stream = VestingStream {
+            stream_id,
             beneficiary: user,
             total_amount,
             start_time: timestamp::now_seconds(),
             duration,
             cliff,
-            claimed_amount: 0
+            claimed_amount: 0,
+            creator: signer::address_of(owner)
         };
 
         let contract = borrow_global_mut<VestingContract>(resources_address);
         let state = borrow_global_mut<State>(resources_address);
-        simple_map::add(&mut contract.streams, user, vesting_stream);
+        simple_map::add(&mut contract.streams, stream_id, vesting_stream);
+        vector::push_back(&mut contract.streams_vec, vesting_stream);
 
         event::emit_event(&mut state.stream_created, StreamCreatedEvent{
             beneficiary: vesting_stream.beneficiary,
@@ -143,7 +155,8 @@ module blockchain::vesting {
         users: vector<address>,
         total_amounts: vector<u64>,
         durations: vector<u64>,
-        cliffs: vector<u64>
+        cliffs: vector<u64>,
+        stream_ids: vector<String>
     ) acquires VestingContract, State {
         let resources_address = account::create_resource_address(&@blockchain, SEED);
         assert!(signer::address_of(owner) == @blockchain, ERROR_NOT_OWNER);
@@ -151,6 +164,7 @@ module blockchain::vesting {
         assert!(len == vector::length(&total_amounts), ERROR_INVALID_AMOUNT);
         assert!(len == vector::length(&durations), ERROR_INVALID_DURATION);
         assert!(len == vector::length(&cliffs), ERROR_INVALID_DURATION);
+        assert!(len == vector::length(&stream_ids), ERROR_INVALID_STREAM_IDS);
 
         // Calculate total required amount
         let total_required = 0;
@@ -171,22 +185,25 @@ module blockchain::vesting {
             let total_amount = *vector::borrow(&total_amounts, i);
             let duration = *vector::borrow(&durations, i);
             let cliff = *vector::borrow(&cliffs, i);
+            let stream_id = *vector::borrow(&stream_ids, i);
 
-            assert!(!has_stream_multiple(*contract, user), ERROR_STREAM_EXISTS);
+            assert!(!has_stream_multiple(*contract, stream_id), ERROR_STREAM_EXISTS);
             assert!(duration > 0, ERROR_INVALID_DURATION);
             assert!(total_amount > 0, ERROR_INVALID_AMOUNT);
             assert!(cliff <= duration, ERROR_CLIFF_EXCEEDS_DURATION);
 
             let vesting_stream = VestingStream {
+                stream_id,
                 beneficiary: user,
                 total_amount,
                 start_time: timestamp::now_seconds(),
                 duration,
                 cliff,
-                claimed_amount: 0
+                claimed_amount: 0,
+                creator: signer::address_of(owner)
             };
 
-            simple_map::add(&mut contract.streams, user, vesting_stream);
+            simple_map::add(&mut contract.streams, stream_id, vesting_stream);
 
             event::emit_event(&mut state.stream_created, StreamCreatedEvent{
                 beneficiary: vesting_stream.beneficiary,
@@ -203,14 +220,14 @@ module blockchain::vesting {
     // get the vested amount
     #[view]
     public fun get_vested_amount(
-        beneficiary: address,
+        stream_id: String,
         current_time: u64
     ): u64 acquires VestingContract {
         let resources_address = account::create_resource_address(&@blockchain, SEED);
-        assert!(has_stream(beneficiary), ERROR_STREAM_NOT_FOUND);
+        assert!(has_stream(stream_id), ERROR_STREAM_NOT_FOUND);
         let contract = borrow_global<VestingContract>(resources_address);
 
-        let stream = simple_map::borrow(&contract.streams, &beneficiary);
+        let stream = simple_map::borrow(&contract.streams, &stream_id);
 
         // If we're still in cliff period, return 0
         if (current_time < (stream.start_time + stream.cliff)) {
@@ -234,16 +251,17 @@ module blockchain::vesting {
     /// Claim vested tokens
     public entry fun claim(
         beneficiary: &signer,
+        stream_id: String,
         amount_to_claim: u64
     ) acquires VestingContract, State {
         let resources_address = account::create_resource_address(&@blockchain, SEED);
         let beneficiary_addr = signer::address_of(beneficiary);
-        assert!(has_stream(beneficiary_addr), ERROR_STREAM_NOT_FOUND);
+        assert!(has_stream(stream_id), ERROR_STREAM_NOT_FOUND);
         let contract = borrow_global_mut<VestingContract>(resources_address);
         let state = borrow_global_mut<State>(resources_address);
         let resource_signer = account::create_signer_with_capability(&state.signer_cap);
 
-        let stream = simple_map::borrow_mut(&mut contract.streams, &beneficiary_addr);
+        let stream = simple_map::borrow_mut(&mut contract.streams, &stream_id);
         let now_seconds = timestamp::now_seconds();
 
         // Check if cliff period has passed
@@ -283,14 +301,14 @@ module blockchain::vesting {
     /// View function to get stream details
     #[view]
     public fun get_stream(
-        beneficiary: address
+        stream_id: String
     ): (u64, u64, u64, u64, u64) acquires VestingContract {
         let resources_address = account::create_resource_address(&@blockchain, SEED);
 
-        assert!(has_stream(beneficiary), ERROR_STREAM_NOT_FOUND);
+        assert!(has_stream(stream_id), ERROR_STREAM_NOT_FOUND);
         let contract = borrow_global<VestingContract>(resources_address);
 
-        let stream = simple_map::borrow(&contract.streams, &beneficiary);
+        let stream = simple_map::borrow(&contract.streams, &stream_id);
         (
             stream.total_amount,
             stream.start_time,
@@ -300,21 +318,66 @@ module blockchain::vesting {
         )
     }
 
+    /// View function to get stream details
+    #[view]
+    public fun get_all_streams(
+    ): vector<VestingStream> acquires VestingContract {
+        let resources_address = account::create_resource_address(&@blockchain, SEED);
+        
+        let contract = borrow_global<VestingContract>(resources_address);
+
+        contract.streams_vec
+    }
+
+    /// View function to get all stream details for a user
+    #[view]
+    public fun get_streams_for_user(
+        user_address: address
+    ): Option<vector<VestingStream>> acquires VestingContract {
+        let resources_address = account::create_resource_address(&@blockchain, SEED);
+
+        // Check if the VestingContract exists at the resource address
+        if (!exists<VestingContract>(resources_address)) {
+           option::none<VestingStream>();
+        };
+
+        let contract = borrow_global<VestingContract>(resources_address);
+        let streams_vec = &contract.streams_vec;
+        let len = vector::length(streams_vec);
+        let result = vector::empty<VestingStream>();
+
+        // Iterate through streams to find all matching user_address
+        let i = 0;
+        while (i < len) {
+            let stream = vector::borrow(streams_vec, i);
+            if (stream.beneficiary == user_address) {
+                vector::push_back(&mut result, *stream)
+            };
+            i = i + 1;
+        };
+
+        if (vector::length(&result) > 0) {
+            option::some(result)
+        } else {
+            option::none()
+        }
+    }
+
     /// Check if an address has a vesting stream
     inline fun has_stream(
-        beneficiary: address
+        stream_id: String
     ): bool acquires VestingContract {
         let resources_address = account::create_resource_address(&@blockchain, SEED);
         let contract = borrow_global<VestingContract>(resources_address);
-        simple_map::contains_key(&contract.streams, &beneficiary)
+        simple_map::contains_key(&contract.streams, &stream_id)
     }
 
     /// Check if an address has a vesting stream
     inline fun has_stream_multiple(
         contract: VestingContract,
-        beneficiary: address
+        stream_id: String
     ): bool {
-        simple_map::contains_key(&contract.streams, &beneficiary)
+        simple_map::contains_key(&contract.streams, &stream_id)
     }
 
     /// Helper function to calculate claimable amount

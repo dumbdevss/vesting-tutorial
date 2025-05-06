@@ -2,6 +2,7 @@ import "@rainbow-me/rainbowkit/styles.css";
 import { ScaffoldMoveAppWithProviders } from "~~/components/ScaffoldMoveAppWithProviders";
 import { ThemeProvider } from "~~/components/ThemeProvider";
 import "~~/styles/globals.css";
+import { Toaster } from "~~/components/ui/toaster";
 import { getMetadata } from "~~/utils/scaffold-move/getMetadata";
 
 export const metadata = getMetadata({
@@ -14,7 +15,10 @@ const ScaffoldMoveApp = ({ children }: { children: React.ReactNode }) => {
     <html suppressHydrationWarning>
       <body>
         <ThemeProvider enableSystem={false} defaultTheme="dark">
-          <ScaffoldMoveAppWithProviders>{children}</ScaffoldMoveAppWithProviders>
+          <ScaffoldMoveAppWithProviders>
+            {children}
+            <Toaster />
+          </ScaffoldMoveAppWithProviders>
         </ThemeProvider>
       </body>
     </html>

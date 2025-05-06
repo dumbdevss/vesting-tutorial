@@ -1,4 +1,5 @@
 import { Button } from "~~/components/ui/button"
+import Link from "next/link"
 import { ArrowRight, Crown } from "lucide-react"
 
 export default function Home() {
@@ -20,13 +21,15 @@ export default function Home() {
             simplify the vesting process.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-            <Button
-              size="lg"
-              className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-400 hover:to-yellow-500 text-black font-medium"
-            >
-              Launch App
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
+            <Link href="/dashboard" passHref={true} prefetch={true}>
+              <Button
+                size="lg"
+                className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-400 hover:to-yellow-500 text-black font-medium"
+              >
+                Launch App
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </Link>
             <Button
               size="lg"
               variant="outline"
