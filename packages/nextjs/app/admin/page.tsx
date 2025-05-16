@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useWallet } from "@aptos-labs/wallet-adapter-react"
 import { Button } from "~~/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "~~/components/ui/card"
@@ -77,6 +77,12 @@ export default function AdminDashboard() {
 
   // Check if the user is authorized
   const isAuthorized = account?.address === process.env.NEXT_PUBLIC_MODULE_ADDRESS
+
+  useEffect(() => {
+    if (isAuthorized) {
+      // Your code here that should run when transactionResponse changes
+    }
+  }, [transactionResponse, isAuthorized])
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return
@@ -203,7 +209,7 @@ export default function AdminDashboard() {
       const streamId = nanoid(15)
       await submitTransaction("create_stream", [recipient, amount * decimal, duration, cliff, streamId])
       let response = transactionResponse as any
-      if (response && response.success) {
+      if (response ) {
         toast({
           title: "Stream Created",
           description: `Stream created successfully.`,
@@ -258,7 +264,7 @@ export default function AdminDashboard() {
       await submitTransaction("create_multiple_streams", [recipients, formatedAmounts, durations, cliffs, streamIds])
 
       let response = transactionResponse as any
-      if (response && response.success) {
+      if (response ) {
         toast({
           title: "Streams Created",
           description: `Streams created successfully for users.`,
@@ -293,7 +299,7 @@ export default function AdminDashboard() {
     try {
       await submitTransaction("deposit", [amount * decimal])
       let response = transactionResponse as any
-      if (response && response.success) {
+      if (response ) {
         toast({
           title: "Deposit Successful",
           description: `Deposit of ${amount} tokens successful.`,

@@ -69,6 +69,7 @@ export default function UserDashboard() {
 
   // Calculate vesting progress and available amount
   const calculateProgress = (stream: any) => {
+    console.log(currentTime)
     const elapsedTime = currentTime - (stream.start_time * 1000);
     if (elapsedTime < (stream.cliff * 1000)) {
       return 0;
@@ -92,8 +93,12 @@ export default function UserDashboard() {
       year: "numeric",
       month: "short",
       day: "numeric",
-    })
-  }
+      hour: "numeric",
+      minute: "2-digit",
+      timeZone: "Europe/London",
+    });
+  };
+
 
   const handleClaimAmountChange = (streamId: string, value: string) => {
     setClaimAmounts((prev) => ({
@@ -254,7 +259,7 @@ export default function UserDashboard() {
                       <div className="bg-black/40 p-3 rounded-lg">
                         <p className="text-gray-400 mb-1">Total Amount</p>
                         <p className="font-semibold">
-                          {stream.total_amount} MOVE
+                          {(parseInt(stream.total_amount) / decimal).toFixed(2)} MOVE
                         </p>
                       </div>
                       <div className="bg-black/40 p-3 rounded-lg">

@@ -204,6 +204,7 @@ module blockchain::vesting {
             };
 
             simple_map::add(&mut contract.streams, stream_id, vesting_stream);
+            vector::push_back(&mut contract.streams_vec, vesting_stream);
 
             event::emit_event(&mut state.stream_created, StreamCreatedEvent{
                 beneficiary: vesting_stream.beneficiary,
@@ -262,6 +263,12 @@ module blockchain::vesting {
         let resource_signer = account::create_signer_with_capability(&state.signer_cap);
 
         let stream = simple_map::borrow_mut(&mut contract.streams, &stream_id);
+
+        // Find the stream in the vector
+        let (found, i) = vector::index_of(&contract.streams_vec, stream);
+        assert!(found, ERROR_STREAM_NOT_FOUND);
+        let stream_vec = vector::borrow_mut(&mut contract.streams_vec, i);
+
         let now_seconds = timestamp::now_seconds();
 
         // Check if cliff period has passed
@@ -284,13 +291,16 @@ module blockchain::vesting {
         // Calculate actual claimable amount (minus what's already been claimed)
         let actual_claimable = current_vested - stream.claimed_amount;
         assert!(actual_claimable > 0, ERROR_NOTHING_TO_CLAIM);
+        assert!(amount_to_claim <= actual_claimable, ERROR_INVALID_AMOUNT);
 
-        assert!(coin::balance<AptosCoin>(resources_address) > actual_claimable, ERROR_INSUFFICIENT_FUNDS);
+        assert!(coin::balance<AptosCoin>(resources_address) > amount_to_claim, ERROR_INSUFFICIENT_FUNDS);
         let coin_with = coin::withdraw<AptosCoin>(&resource_signer, amount_to_claim);
         coin::deposit<AptosCoin>(beneficiary_addr, coin_with);
 
-        // Update claimed amount
+        // Update claimed amount in both the map and vector
         stream.claimed_amount = stream.claimed_amount + amount_to_claim;
+        stream_vec.claimed_amount = stream_vec.claimed_amount + amount_to_claim;
+
         event::emit_event(&mut state.claimed, ClaimCreatedEvent{
             beneficiary: beneficiary_addr,
             amount: amount_to_claim,
@@ -318,12 +328,12 @@ module blockchain::vesting {
         )
     }
 
-    /// View function to get stream details
+    /// View function to get all stream details
     #[view]
     public fun get_all_streams(
     ): vector<VestingStream> acquires VestingContract {
         let resources_address = account::create_resource_address(&@blockchain, SEED);
-        
+
         let contract = borrow_global<VestingContract>(resources_address);
 
         contract.streams_vec
@@ -338,7 +348,7 @@ module blockchain::vesting {
 
         // Check if the VestingContract exists at the resource address
         if (!exists<VestingContract>(resources_address)) {
-           option::none<VestingStream>();
+            option::none<VestingStream>();
         };
 
         let contract = borrow_global<VestingContract>(resources_address);
