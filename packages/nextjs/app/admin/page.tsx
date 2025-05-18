@@ -13,11 +13,9 @@ import { ToastAction } from "~~/components/ui/toast"
 import { Alert, AlertDescription, AlertTitle } from "~~/components/ui/alert"
 import * as XLSX from "xlsx"
 import { nanoid } from "nanoid"
-import { secondsInUnit } from "~~/utils/utils";
+import { secondsInUnit } from "~~/utils/utils"
 import useSubmitTransaction from "~~/hooks/scaffold-move/useSubmitTransaction"
-import { useView } from "~~/hooks/scaffold-move/useView"
 import { useToast } from "~~/hooks/use-toast"
-import { responseCache } from "viem/_types/utils/promise/withCache"
 
 // Utility function to parse time strings (e.g., "1d", "1min", "1mon", "1yr") to seconds
 const parseTimeToSeconds = (timeStr: string): number => {
@@ -29,8 +27,6 @@ const parseTimeToSeconds = (timeStr: string): number => {
 
   const value = parseFloat(match[1])
   const unit = match[2]
-
-
 
   if (!secondsInUnit[unit]) {
     throw new Error(`Invalid time unit: ${unit}. Supported units: s, m, h, d, w, mon, y`)
@@ -66,17 +62,20 @@ export default function AdminDashboard() {
   const [depositAmount, setDepositAmount] = useState<number>(0)
   const { toast } = useToast()
 
-  const decimal = 1 * 10 ** 8;
+  const decimal = 1 * 10 ** 8
 
   const { account } = useWallet()
   const { submitTransaction, transactionResponse, transactionInProcess } = useSubmitTransaction("vesting")
-  const { data, error, isLoading } = useView({
-    moduleName: "vesting",
-    functionName: "get_all_streams",
-  })
 
-  // Check if the user is authorized
-  const isAuthorized = account?.address === process.env.NEXT_PUBLIC_MODULE_ADDRESS
+  // TODO 1: Implement useView hook for fetching all streams
+  const { data, error, isLoading } = {
+    data: [[]],
+    error: null,
+    isLoading: false
+  }
+
+  // TODO 2: Implement authorization check
+  const isAuthorized = false // Replace with actual check against module address
 
   useEffect(() => {
     if (isAuthorized) {
@@ -84,249 +83,61 @@ export default function AdminDashboard() {
     }
   }, [transactionResponse, isAuthorized])
 
+  // TODO 3: Implement handleFileUpload function
+  /*
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files || e.target.files.length === 0) return
-
-    setIsUploading(true)
-    setUploadError(null)
-
-    const file = e.target.files[0]
-
-    try {
-      const reader = new FileReader()
-      reader.onload = async (event) => {
-        if (!event.target?.result) {
-          throw new Error("Failed to read file")
-        }
-
-        const data = new Uint8Array(event.target.result as ArrayBuffer)
-        const workbook = XLSX.read(data, { type: "array" })
-        const sheetName = workbook.SheetNames[0]
-        const sheet = workbook.Sheets[sheetName]
-        const jsonData = XLSX.utils.sheet_to_json(sheet)
-
-        const processedData = jsonData.map((row: any) => ({
-          wallet_address: row.wallet_address || row.address || "",
-          amount: Number(row.Amount) || 0,
-          duration: String(row.duration || ""),
-          cliff: String(row.cliff || ""),
-        }))
-
-        const validData = processedData.filter((row) => {
-          const isValidAddress = /^0x[a-fA-F0-9]{64}$/.test(row.wallet_address)
-          const isValidAmount = row.amount > 0
-          let isValidDuration = false
-          let isValidCliff = false
-          try {
-            parseTimeToSeconds(row.duration)
-            isValidDuration = true
-          } catch {
-            // Invalid duration format
-          }
-          try {
-            parseTimeToSeconds(row.cliff)
-            isValidCliff = true
-          } catch {
-            // Invalid cliff format
-          }
-          return isValidAddress && isValidAmount && isValidDuration && isValidCliff
-        })
-
-        if (validData.length === 0) {
-          throw new Error(
-            "No valid data found in the file. Ensure columns include wallet_address, amount, duration, cliff (e.g., 1d, 1min, 1mon, 1yr)."
-          )
-        }
-
-        // Extract and set state variables from validData
-        const newRecipients = validData.map(row => row.wallet_address as `0x${string}`)
-        const newAmounts = validData.map(row => row.amount)
-        const newDurations = validData.map(row => row.duration)
-        const newCliffs = validData.map(row => row.cliff)
-
-        // Update state with extracted data
-        setRecipients(newRecipients)
-        setAmounts(newAmounts)
-        setDurations(newDurations)
-        setCliffs(newCliffs)
-
-        setIsUploading(false)
-        setUploadSuccess(true)
-      }
-
-      reader.onerror = () => {
-        setIsUploading(false)
-        setUploadError("Error reading file")
-      }
-
-      reader.readAsArrayBuffer(file)
-    } catch (error: any) {
-      setIsUploading(false)
-      setUploadError(error.message || "Failed to process file")
-    }
+    // 1. Check if a file is selected
+    // 2. Set isUploading to true and clear uploadError
+    // 3. Read and parse XLS file using XLSX
+    // 4. Validate data (wallet_address, amount, duration, cliff)
+    // 5. Extract valid data into recipients, amounts, durations, and cliffs
+    // 6. Update state with extracted data
+    // 7. Set isUploading to false and uploadSuccess to true
+    // 8. Handle errors and set uploadError
   }
+  */
 
+  // TODO 4: Implement handleInputChange function
+  /*
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
-    const { name, value } = e.target
-    console.log("Input changed:", name, value)
-
-    switch (name) {
-      case "wallet-address":
-        const updatedRecipients = [...recipients]
-        updatedRecipients[index] = value as `0x${string}`
-        setRecipients(updatedRecipients)
-        break
-      case "amount":
-        const updatedAmounts = [...amounts]
-        updatedAmounts[index] = Number(value)
-        setAmounts(updatedAmounts)
-        break
-      case "duration":
-        const updatedDurations = [...durations]
-        updatedDurations[index] = value
-        setDurations(updatedDurations)
-        break
-      case "cliff":
-        const updatedCliffs = [...cliffs]
-        updatedCliffs[index] = value
-        setCliffs(updatedCliffs)
-        break
-      case "deposit-amount":
-        setDepositAmount(Number(value))
-        break
-      default:
-        break
-    }
+    // 1. Get name and value from event target
+    // 2. Update appropriate state array (recipients, amounts, durations, cliffs) based on input name
+    // 3. Update depositAmount for deposit-amount input
   }
+  */
 
-  const handleCreateStream = async (
-    recipient: `0x${string}`,
-    amount: number,
-    duration: number,
-    cliff: number
-  ) => {
-    try {
-      const streamId = nanoid(15)
-      await submitTransaction("create_stream", [recipient, amount * decimal, duration, cliff, streamId])
-      let response = transactionResponse as any
-      if (response ) {
-        toast({
-          title: "Stream Created",
-          description: `Stream created successfully.`,
-          action: (
-            <a
-              href={`https://explorer.movementnetwork.xyz/txn/${response?.transactionHash}`}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <ToastAction altText="View transaction">View txn</ToastAction>
-            </a>
-          ),
-        });
-        setRecipients([]);
-        setAmounts([]);
-        setDurations([]);
-        setCliffs([]);
-      } else {
-        toast({
-          title: "Stream Creation Failed",
-          description: `Transaction hash not available or transaction failed.`,
-          variant: "destructive",
-        })
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: `Failed to create stream for ${recipient}: ${error}`,
-        variant: "destructive",
-      })
-      throw error
-    }
+  // TODO 5: Implement handleCreateStream function
+  /*
+  const handleCreateStream = async (recipient: `0x${string}`, amount: number, duration: number, cliff: number) => {
+    // 1. Generate a unique streamId using nanoid
+    // 2. Submit transaction to create a single stream
+    // 3. Show success toast with transaction link if successful
+    // 4. Clear input states on success
+    // 5. Show error toast if transaction fails
   }
+  */
 
-  const handleCreateMultipleStreams = async (
-    recipients: `0x${string}`[],
-    amounts: number[],
-    durations: number[],
-    cliffs: number[]
-  ) => {
-    try {
-      if (
-        recipients.length !== amounts.length ||
-        recipients.length !== durations.length ||
-        recipients.length !== cliffs.length
-      ) {
-        throw new Error("All input arrays must have the same length")
-      }
-
-      const streamIds = Array.from({ length: recipients.length }, () => nanoid(15))
-      const formatedAmounts = amounts.map((amount) => amount * decimal)
-      await submitTransaction("create_multiple_streams", [recipients, formatedAmounts, durations, cliffs, streamIds])
-
-      let response = transactionResponse as any
-      if (response ) {
-        toast({
-          title: "Streams Created",
-          description: `Streams created successfully for users.`,
-          action: (
-            <a
-              href={`https://explorer.movementnetwork.xyz/txn/${response?.transactionHash}`}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <ToastAction altText="View transaction">View txn</ToastAction>
-            </a>
-          ),
-        })
-      } else {
-        toast({
-          title: "Stream Creation Failed",
-          description: `Transaction hash not available or transaction failed.`,
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: `Failed to create streams: ${error}`,
-        variant: "destructive",
-      });
-      throw error
-    }
+  // TODO 6: Implement handleCreateMultipleStreams function
+  /*
+  const handleCreateMultipleStreams = async (recipients: `0x${string}`[], amounts: number[], durations: number[], cliffs: number[]) => {
+    // 1. Validate that all input arrays have the same length
+    // 2. Generate unique streamIds for each stream
+    // 3. Format amounts with decimal multiplier
+    // 4. Submit transaction to create multiple streams
+    // 5. Show success toast with transaction link if successful
+    // 6. Show error toast if transaction fails
   }
+  */
 
+  // TODO 7: Implement handleDeposit function
+  /*
   const handleDeposit = async (amount: number) => {
-    try {
-      await submitTransaction("deposit", [amount * decimal])
-      let response = transactionResponse as any
-      if (response ) {
-        toast({
-          title: "Deposit Successful",
-          description: `Deposit of ${amount} tokens successful.`,
-          action: (
-            <a
-              href={`https://explorer.movementnetwork.xyz/txn/${response?.transactionHash}`}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <ToastAction altText="View transaction">View txn</ToastAction>
-            </a>
-          ),
-        });
-      } else {
-        toast({
-          title: "Deposit Failed",
-          description: `Transaction hash not available or transaction failed.`,
-          variant: "destructive",
-        })
-        console.error("Transaction hash not available or transaction failed.")
-        return null
-      }
-    } catch (error) {
-      console.error("Error submitting deposit transaction:", error)
-      throw error
-    }
+    // 1. Submit transaction to deposit tokens with formatted amount
+    // 2. Show success toast with transaction link if successful
+    // 3. Show error toast if transaction fails
+    // 4. Return null on failure
   }
+  */
 
   return (
     <div className="container max-w-6xl mx-auto py-8 px-4">
@@ -405,7 +216,7 @@ export default function AdminDashboard() {
                           type="file"
                           accept=".xls,.xlsx,.csv"
                           className="absolute inset-0 opacity-0 cursor-pointer"
-                          onChange={handleFileUpload}
+                          onChange={() => {}} // TODO 8: Connect to handleFileUpload
                         />
                         <Button
                           variant="outline"
@@ -442,16 +253,8 @@ export default function AdminDashboard() {
                   </CardContent>
                   <CardFooter className="border-t border-yellow-500/20 bg-yellow-500/5 flex justify-between">
                     <div></div>
-                    <Button onClick={() => {
-                      if (recipients[0] && amounts[0] && durations[0] && cliffs[0]) {
-                        handleCreateMultipleStreams(
-                          recipients,
-                          amounts,
-                          durations.map((duration) => parseTimeToSeconds(duration)),
-                          cliffs.map((cliff) => parseTimeToSeconds(cliff))
-                        )
-                      }
-                    }}
+                    <Button
+                      onClick={() => {}} // TODO 9: Connect to handleCreateMultipleStreams
                       className="bg-gradient-to-r from-yellow-500 to-yellow-600 mt-4 hover:from-yellow-400 hover:to-yellow-500 text-black font-medium"
                       disabled={transactionInProcess}
                     >
@@ -475,7 +278,7 @@ export default function AdminDashboard() {
                         <Input
                           id="wallet-address"
                           placeholder="0x..."
-                          onChange={(e) => handleInputChange(e, 0)}
+                          onChange={() => {}} // TODO 10: Connect to handleInputChange
                           name="wallet-address"
                           type="text"
                           value={recipients[0] || ""}
@@ -491,7 +294,7 @@ export default function AdminDashboard() {
                             type="number"
                             name="amount"
                             placeholder="0.00"
-                            onChange={(e) => handleInputChange(e, 0)}
+                            onChange={() => {}} // TODO 11: Connect to handleInputChange
                             value={amounts[0] || ""}
                             className="bg-black/20 border-yellow-500/30 focus:border-yellow-500/50 focus:ring-yellow-500/20"
                           />
@@ -506,7 +309,7 @@ export default function AdminDashboard() {
                             type="text"
                             placeholder="30d"
                             name="cliff"
-                            onChange={(e) => handleInputChange(e, 0)}
+                            onChange={() => {}} // TODO 12: Connect to handleInputChange
                             value={cliffs[0] || ""}
                             className="bg-black/20 border-yellow-500/30 focus:border-yellow-500/50 focus:ring-yellow-500/20"
                           />
@@ -516,7 +319,7 @@ export default function AdminDashboard() {
                           <Input
                             id="duration"
                             type="text"
-                            onChange={(e) => handleInputChange(e, 0)}
+                            onChange={() => {}} // TODO 13: Connect to handleInputChange
                             value={durations[0] || ""}
                             name="duration"
                             placeholder="1yr"
@@ -528,16 +331,7 @@ export default function AdminDashboard() {
                   </CardContent>
                   <CardFooter className="border-t border-yellow-500/20 bg-yellow-500/5 flex justify-end">
                     <Button
-                      onClick={() => {
-                        if (recipients[0] && amounts[0] && durations[0] && cliffs[0]) {
-                          handleCreateStream(
-                            recipients[0] as `0x${string}`,
-                            amounts[0],
-                            parseTimeToSeconds(durations[0]),
-                            parseTimeToSeconds(cliffs[0])
-                          )
-                        }
-                      }}
+                      onClick={() => {}} // TODO 14: Connect to handleCreateStream
                       className="bg-gradient-to-r from-yellow-500 to-yellow-600 mt-4 hover:from-yellow-400 hover:to-yellow-500 text-black font-medium"
                       disabled={transactionInProcess}
                     >
@@ -566,7 +360,7 @@ export default function AdminDashboard() {
                         type="number"
                         name="deposit-amount"
                         placeholder="0.00"
-                        onChange={(e) => handleInputChange(e, 0)}
+                        onChange={() => {}} // TODO 15: Connect to handleInputChange
                         value={depositAmount || ""}
                         className="bg-black/20 border-yellow-500/30 focus:border-yellow-500/50 focus:ring-yellow-500/20"
                       />
@@ -575,11 +369,7 @@ export default function AdminDashboard() {
                 </CardContent>
                 <CardFooter className="border-t border-yellow-500/20 bg-yellow-500/5 flex justify-end">
                   <Button
-                    onClick={() => {
-                      if (depositAmount > 0) {
-                        handleDeposit(depositAmount)
-                      }
-                    }}
+                    onClick={() => {}} // TODO 16: Connect to handleDeposit
                     className="bg-gradient-to-r from-yellow-500 to-yellow-600 mt-4 hover:from-yellow-400 hover:to-yellow-500 text-black font-medium"
                     disabled={transactionInProcess || depositAmount <= 0}
                   >

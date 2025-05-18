@@ -7,7 +7,6 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~~/components/ui/tabs"
 import { Input } from "~~/components/ui/input"
 import { ArrowRight, Clock, CoinsIcon, Download, LineChart } from "lucide-react"
-import { useView } from "~~/hooks/scaffold-move/useView"
 import { ToastAction } from "~~/components/ui/toast"
 import useSubmitTransaction from "~~/hooks/scaffold-move/useSubmitTransaction"
 import { toast } from "~~/components/ui/use-toast"
@@ -18,94 +17,68 @@ const classNames = (...classes: (string | boolean | undefined | null)[]) => {
 }
 
 export default function UserDashboard() {
-  const [claimAmounts, setClaimAmounts] = useState<{ [key: string]: string }>({});
-  const currentTime = Date.now();
+  const [claimAmounts, setClaimAmounts] = useState<{ [key: string]: string }>({})
+  const currentTime = Date.now()
 
-  const decimal = 1 * 10 ** 8;
+  const decimal = 1 * 10 ** 8
 
   const { account } = useWallet()
   const { submitTransaction, transactionResponse, transactionInProcess } = useSubmitTransaction("vesting")
-  const { data, error, isLoading } = useView({
-    moduleName: "vesting",
-    functionName: "get_streams_for_user",
-    args: [account?.address as `0x${string}`],
-  });
 
+  // TODO 17: Implement useView hook for fetching user streams
+  const { data, error, isLoading } = {
+    data: [[]],
+    error: null,
+    isLoading: false
+  }
 
   const streams = data?.[0]?.vec?.[0] || []
 
+  // TODO 18: Implement claimStream function
+  /*
   const claimStream = async (streamId: string, amount: number) => {
-    try {
-      await submitTransaction("claim", [streamId, amount])
-      const response = transactionResponse as any
-      if (response && response.transactionHash) {
-        toast({
-          title: "Claim Successful",
-          description: `Claim of ${amount} tokens successful.`,
-          action: (
-            <a
-              href={`https://explorer.movementnetwork.xyz/txn/${response?.transactionHash}`}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <ToastAction altText="View transaction">View txn</ToastAction>
-            </a>
-          ),
-        })
-        return response.transactionHash
-      } else {
-        throw new Error("Transaction hash not available or transaction failed.")
-      }
-    } catch (error) {
-      console.error("Error claiming stream:", error)
-      toast({
-        variant: "destructive",
-        title: "Claim Failed",
-        description: "Failed to claim tokens. Please try again.",
-      })
-      throw error
-    }
+    // 1. Submit transaction to claim tokens from the specified stream
+    // 2. Show success toast with transaction link if successful
+    // 3. Show error toast if transaction fails
+    // 4. Return transaction hash or throw error
   }
+  */
 
-  // Calculate vesting progress and available amount
+  // TODO 19: Implement calculateProgress function
+  /*
   const calculateProgress = (stream: any) => {
-    console.log(currentTime)
-    const elapsedTime = currentTime - (stream.start_time * 1000);
-    if (elapsedTime < (stream.cliff * 1000)) {
-      return 0;
-    } else if (elapsedTime >= stream.duration) {
-      return 100;
-    } else {
-      return (elapsedTime / stream.duration) * 100;
-    }
+    // 1. Calculate elapsed time since stream start
+    // 2. Return 0 if before cliff
+    // 3. Return 100 if duration is complete
+    // 4. Otherwise, return percentage of duration completed
   }
+  */
 
+  // TODO 20: Implement calculateAvailable function
+  /*
   const calculateAvailable = (stream: any) => {
-    const progress = calculateProgress(stream) / 100
-    const totalVested = Number.parseFloat(stream.total_amount) * progress
-    const available = (totalVested - Number.parseFloat(stream.claimed_amount)) / decimal
-    console.log("Available:", available) 
-    return Math.max(0, available).toFixed(2)
+    // 1. Calculate progress using calculateProgress
+    // 2. Compute total vested amount based on progress
+    // 3. Subtract claimed amount and format with decimal
+    // 4. Return available amount, ensuring non-negative
   }
+  */
 
+  // TODO 21: Implement formatDate function
+  /*
   const formatDate = (timestamp: number) => {
-    return new Date(timestamp * 1000).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "numeric",
-      minute: "2-digit",
-      timeZone: "Europe/London",
-    });
-  };
-
-
-  const handleClaimAmountChange = (streamId: string, value: string) => {
-    setClaimAmounts((prev) => ({
-      ...prev,
-      [streamId]: value,
-    }))
+    // 1. Convert timestamp to readable date string
+    // 2. Use specified format (e.g., "Jan 1, 2023, 12:00 PM")
+    // 3. Use Europe/London timezone
   }
+  */
+
+  // TODO 22: Implement handleClaimAmountChange function
+  /*
+  const handleClaimAmountChange = (streamId: string, value: string) => {
+    // 1. Update claimAmounts state with new value for the specified streamId
+  }
+  */
 
   return (
     <div className="container max-w-6xl mx-auto py-8 px-4">
@@ -142,7 +115,7 @@ export default function UserDashboard() {
             <CardDescription>Available to Claim</CardDescription>
             <CardTitle className="text-2xl flex items-center">
               <ArrowRight className="mr-2 h-5 w-5 text-yellow-400" />
-              {streams.reduce((sum: number, stream: any) => sum + Number.parseFloat(calculateAvailable(stream)), 0).toFixed(2)} MOVE
+              {streams.reduce((sum: number, stream: any) => sum + Number.parseFloat('0'), 0).toFixed(2)} MOVE
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -208,7 +181,7 @@ export default function UserDashboard() {
                       <CardTitle className="text-xl">MOVE Token Stream</CardTitle>
                       <CardDescription className="flex items-center mt-1">
                         <Clock className="mr-1 h-4 w-4" />
-                        Started {formatDate(stream.start_time)}
+                        Started {'TBD'} {/* TODO 23: Use formatDate */}
                       </CardDescription>
                     </div>
                     <div className="flex items-center gap-2">
@@ -216,22 +189,11 @@ export default function UserDashboard() {
                         type="number"
                         placeholder="Amount"
                         value={claimAmounts[stream.stream_id] || ""}
-                        onChange={(e) => handleClaimAmountChange(stream.stream_id, e.target.value)}
+                        onChange={() => {}} // TODO 24: Connect to handleClaimAmountChange
                         className="w-24 bg-black/20 border-yellow-500/30 focus:border-yellow-500/50 focus:ring-yellow-500/20"
                       />
                       <Button
-                        onClick={() => {
-                          const amount = Number(claimAmounts[stream.stream_id])
-                          if (amount > 0 && amount <= Number(calculateAvailable(stream))) {
-                            claimStream(stream.stream_id, amount)
-                          } else {
-                            toast({
-                              variant: "destructive",
-                              title: "Invalid Amount",
-                              description: "Please enter a valid amount within the available balance.",
-                            })
-                          }
-                        }}
+                        onClick={() => {}} // TODO 25: Connect to claimStream
                         disabled={transactionInProcess || !claimAmounts[stream.stream_id] || Number(claimAmounts[stream.stream_id]) <= 0}
                         className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-400 hover:to-yellow-500 text-black font-medium"
                       >
@@ -245,12 +207,12 @@ export default function UserDashboard() {
                     <div>
                       <div className="flex justify-between mb-1 text-sm">
                         <span className="text-gray-400">Vesting Progress</span>
-                        <span className="font-medium text-yellow-400">{calculateProgress(stream).toFixed(1)}%</span>
+                        <span className="font-medium text-yellow-400">{'0'}%</span> {/* TODO 26: Use calculateProgress */}
                       </div>
                       <div className="h-2 rounded-full progress-bar-bg overflow-hidden">
                         <div
                           className="h-full progress-bar-fill rounded-full"
-                          style={{ width: `${calculateProgress(stream)}%` }}
+                          style={{ width: `${0}%` }} {/* TODO 27: Use calculateProgress */}
                         ></div>
                       </div>
                     </div>
@@ -265,18 +227,18 @@ export default function UserDashboard() {
                       <div className="bg-black/40 p-3 rounded-lg">
                         <p className="text-gray-400 mb-1">Available</p>
                         <p className="font-semibold text-yellow-400">
-                          {(parseFloat(calculateAvailable(stream)) / decimal).toFixed(2)} MOVE
+                          {'0.00'} MOVE {/* TODO 28: Use calculateAvailable */}
                         </p>
                       </div>
                       <div className="bg-black/40 p-3 rounded-lg">
                         <p className="text-gray-400 mb-1">Claimed</p>
                         <p className="font-semibold">
-                        {(parseFloat(stream.claimed_amount) / decimal).toFixed(2)} MOVE
+                          {(parseFloat(stream.claimed_amount) / decimal).toFixed(2)} MOVE
                         </p>
                       </div>
                       <div className="bg-black/40 p-3 rounded-lg">
                         <p className="text-gray-400 mb-1">End Date</p>
-                        <p className="font-semibold">{formatDate(parseInt(stream.start_time) + parseInt(stream.duration))}</p>
+                        <p className="font-semibold">{'TBD'}</p> {/* TODO 29: Use formatDate */}
                       </div>
                     </div>
                   </div>
@@ -287,7 +249,7 @@ export default function UserDashboard() {
                     stream.cliff > 0 ? "justify-between" : "justify-end",
                   )}
                 >
-                  {stream.cliff > 0 && <div>Cliff: {formatDate(parseInt(stream.start_time) + parseInt(stream.cliff))}</div>}
+                  {stream.cliff > 0 && <div>Cliff: {'TBD'}</div>} {/* TODO 30: Use formatDate */}
                   <div>Stream ID: {stream.stream_id}</div>
                 </CardFooter>
               </Card>
