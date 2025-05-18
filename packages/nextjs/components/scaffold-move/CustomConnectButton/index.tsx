@@ -28,7 +28,7 @@ export const CustomConnectButton = () => {
         <>
           <div className="flex flex-col items-center mr-1">
             <Balance address={account?.address as string} />
-            <span className="text-xs">{targetNetwork ? targetNetwork.name : "Loading..."}</span>
+            <span className="text-xs">{targetNetwork ? targetNetwork.name.split(" ")?.[1] : "Loading..."}</span>
           </div>
           <AddressInfoDropdown
             address={account?.address || ""}

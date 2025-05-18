@@ -1,2 +1,2 @@
-const latestChainId = 2;
+const latestChainId = 250;
 export default latestChainId;
